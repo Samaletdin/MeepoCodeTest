@@ -1,19 +1,30 @@
 package response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Note {
-  String id;
-  String title;
-  String description;
+    private String id;
+    private String title;
+    private String description;
 
-  public String getId() {
-    return id;
-  }
+    @JsonCreator
+    public Note(@JsonProperty("id") String id, @JsonProperty("title") String title, @JsonProperty("description") String description) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+    }
 
-  public String getTitle() {
-    return title;
-  }
+    public String getId() {
+        return id;
+    }
 
-  public String getDescription() {
-    return description;
-  }
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
 }
