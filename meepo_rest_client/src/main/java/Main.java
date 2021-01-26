@@ -18,10 +18,21 @@ public class Main {
                     messageBuilder.append(noteApi.getNotes());
                     break;
                 case "2":
-                    messageBuilder.append(noteApi.updateNote("placeholder title", "placeholder description", "1"));
+                    System.out.println("Please enter the id for the note you would like to read:");
+                    String readId = scanner.nextLine();
+                    messageBuilder.append(noteApi.getNote(readId));
                     break;
                 case "3":
-                    messageBuilder.append(noteApi.deleteNote("1"));
+                    System.out.println("Please write describe title, description and id, separate by new row:");
+                    String title = scanner.nextLine();
+                    String description = scanner.nextLine();
+                    String updateId = scanner.nextLine();
+                    messageBuilder.append(noteApi.updateNote(title, description, updateId));
+                    break;
+                case "4":
+                    System.out.println("Please enter what note id you would like to delete:");
+                    String deleteId = scanner.nextLine();
+                    messageBuilder.append(noteApi.deleteNote(deleteId));
                     break;
                 case "q":
                     scanner.close();
@@ -38,9 +49,10 @@ public class Main {
         return new StringBuilder()
                 .append("Hello and welcome to Meepo Notes!\n")
                 .append("Would you like to:\n")
-                .append("1) Read your notes\n")
-                .append("2) Update a note\n")
-                .append("3) Delete a note\n")
+                .append("1) Read all notes\n")
+                .append("2) Read notes by id\n")
+                .append("3) Update a note\n")
+                .append("4) Delete a note\n")
                 .append("q to quit\n")
                 .toString();
     }

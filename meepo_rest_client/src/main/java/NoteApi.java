@@ -34,7 +34,7 @@ class NoteApi {
 
         NotesResponse notesResponse = objectMapper.readValue(response.body(), NotesResponse.class);
         StringBuilder notesListBuilder = new StringBuilder();
-        notesResponse.getNotes().forEach(note -> notesListBuilder.append(printNote(note)));
+        notesResponse.getNotes().forEach(note -> notesListBuilder.append(display(note)));
         return notesListBuilder.toString();
     }
 
@@ -42,7 +42,7 @@ class NoteApi {
         return String.format("Something went wrong, server answered with: %s and body: %s ", statusCode, body);
     }
 
-    private String printNote(Note note) {
+    private String display(Note note) {
         StringBuilder noteStringBuilder = new StringBuilder()
                 .append("----------------------\n")
                 .append(note.getTitle() + " : ")
@@ -50,6 +50,25 @@ class NoteApi {
                 .append("Id : " + note.getId() + "\n")
                 .append("----------------------\n");
         return noteStringBuilder.toString();
+    }
+
+    String getNote(String id) throws JsonProcessingException {
+        HttpRequest getNotesRequest = HttpRequest.newBuilder(URI.create(NOTES_API_HOST + id))
+                .GET()
+                .build();
+        HttpResponse<String> response = restSingleSender.sendRequest(getNotesRequest);
+
+        int statusCode = response.statusCode();
+
+        if (404 == statusCode) {
+            return String.format("Note with id %s, does not exist", id);
+        }
+        if (200 != statusCode) {
+            return printErrorMessage(statusCode, response.body());
+        }
+
+        Note note = objectMapper.readValue(response.body(), Note.class);
+        return display(note);
     }
 
     String deleteNote(String id) {
@@ -60,7 +79,17 @@ class NoteApi {
 
         int statusCode = response.statusCode();
         String successMessage = String.format("Note with id %s, successfuly deleted", id);
-        return 200 == statusCode ? successMessage : printErrorMessage(statusCode, response.body());
+        return verifyResponseStatus(id, response.body(), statusCode, successMessage);
+    }
+
+    private String verifyResponseStatus(String id, String body, int statusCode, String successMessage) {
+        if (200 == statusCode) {
+            return successMessage;
+        } else if (404 == statusCode) {
+            return String.format("Note with id %s, does not exist", id);
+        } else {
+            return printErrorMessage(statusCode, body);
+        }
     }
 
     String updateNote(String title, String description, String id) {
@@ -72,6 +101,7 @@ class NoteApi {
 
         int statusCode = response.statusCode();
         String successMessage = String.format("Note with id %s, successfuly created", id);
-        return 200 == statusCode ? successMessage : printErrorMessage(statusCode, response.body());
+
+        return verifyResponseStatus(id, response.body(), statusCode, successMessage);
     }
 }
