@@ -27,7 +27,6 @@ class NoteApi {
         HttpResponse<String> response = restSingleSender.sendRequest(getNotesRequest);
 
         int statusCode = response.statusCode();
-
         if (200 != statusCode) {
             return printErrorMessage(statusCode, response.body());
         }
@@ -52,6 +51,24 @@ class NoteApi {
         return noteStringBuilder.toString();
     }
 
+    String createNote(String title, String description) throws JsonProcessingException {
+        UpdateNoteRequest newNote = new UpdateNoteRequest(title, description);
+        HttpRequest updateNoteRequest = HttpRequest.newBuilder(URI.create(NOTES_API_HOST))
+                .PUT(BodyPublishers.ofString(newNote.toString()))
+                .build();
+        HttpResponse<String> response = restSingleSender.sendRequest(updateNoteRequest);
+
+        int statusCode = response.statusCode();
+        if (200 != statusCode) {
+            return printErrorMessage(statusCode, response.body());
+        }
+
+        Note note = objectMapper.readValue(response.body(), Note.class);
+        return new StringBuilder().append("Note Created:")
+                .append(display(note))
+                .toString();
+    }
+
     String getNote(String id) throws JsonProcessingException {
         HttpRequest getNotesRequest = HttpRequest.newBuilder(URI.create(NOTES_API_HOST + id))
                 .GET()
@@ -71,14 +88,16 @@ class NoteApi {
         return display(note);
     }
 
-    String deleteNote(String id) {
-        HttpRequest deleteNoteRequest = HttpRequest.newBuilder(URI.create(NOTES_API_HOST + id))
-                .DELETE()
+    String updateNote(String title, String description, String id) {
+        UpdateNoteRequest newNote = new UpdateNoteRequest(title, description);
+        HttpRequest updateNoteRequest = HttpRequest.newBuilder(URI.create(NOTES_API_HOST + id))
+                .PUT(BodyPublishers.ofString(newNote.toString()))
                 .build();
-        HttpResponse<String> response = restSingleSender.sendRequest(deleteNoteRequest);
+        HttpResponse<String> response = restSingleSender.sendRequest(updateNoteRequest);
 
         int statusCode = response.statusCode();
-        String successMessage = String.format("Note with id %s, successfuly deleted", id);
+        String successMessage = String.format("Note with id %s, successfuly created", id);
+
         return verifyResponseStatus(id, response.body(), statusCode, successMessage);
     }
 
@@ -92,16 +111,14 @@ class NoteApi {
         }
     }
 
-    String updateNote(String title, String description, String id) {
-        UpdateNoteRequest newNote = new UpdateNoteRequest(title, description);
-        HttpRequest updateNoteRequest = HttpRequest.newBuilder(URI.create(NOTES_API_HOST + id))
-                .PUT(BodyPublishers.ofString(newNote.toString()))
+    String deleteNote(String id) {
+        HttpRequest deleteNoteRequest = HttpRequest.newBuilder(URI.create(NOTES_API_HOST + id))
+                .DELETE()
                 .build();
-        HttpResponse<String> response = restSingleSender.sendRequest(updateNoteRequest);
+        HttpResponse<String> response = restSingleSender.sendRequest(deleteNoteRequest);
 
         int statusCode = response.statusCode();
-        String successMessage = String.format("Note with id %s, successfuly created", id);
-
+        String successMessage = String.format("Note with id %s, successfuly deleted", id);
         return verifyResponseStatus(id, response.body(), statusCode, successMessage);
     }
 }
